@@ -1,71 +1,131 @@
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+// supabase/functions/send-contact-email/index.ts
+// Create this file in your project root: supabase/functions/send-contact-email/index.ts
 
-interface ContactData {
-  name: string;
-  email: string;
-  company?: string;
-  phone?: string;
-  message: string;
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+
+interface ContactFormData {
+  fullName: string
+  email: string
+  organization?: string
+  phoneNumber?: string
+  message: string
 }
 
-Deno.serve(async (req: Request) => {
-  try {
-    if (req.method === "OPTIONS") {
-      return new Response(null, {
-        status: 200,
-        headers: corsHeaders,
-      });
-    }
-
-    if (req.method !== "POST") {
-      return new Response(
-        JSON.stringify({ error: "Method not allowed" }),
-        {
-          status: 405,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const contactData: ContactData = await req.json();
-
-    // Here you would integrate with your email service (SendGrid, Resend, etc.)
-    // For now, we'll just log the data and return success
-    console.log("New contact form submission:", contactData);
-
-    // In a real implementation, you would send an email like this:
-    // await sendEmail({
-    //   to: 'admin@healthcare-company.com',
-    //   subject: `New Contact Form Submission from ${contactData.name}`,
-    //   html: `
-    //     <h2>New Contact Form Submission</h2>
-    //     <p><strong>Name:</strong> ${contactData.name}</p>
-    //     <p><strong>Email:</strong> ${contactData.email}</p>
-    //     ${contactData.company ? `<p><strong>Company:</strong> ${contactData.company}</p>` : ''}
-    //     ${contactData.phone ? `<p><strong>Phone:</strong> ${contactData.phone}</p>` : ''}
-    //     <p><strong>Message:</strong></p>
-    //     <p>${contactData.message}</p>
-    //   `
-    // });
-
-    return new Response(
-      JSON.stringify({ success: true, message: "Contact form submitted successfully" }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+serve(async (req) => {
+  // Handle CORS
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
       }
-    );
-  } catch (error) {
-    console.error("Error processing contact form:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    })
   }
-});
+
+  try {
+    const formData: ContactFormData = await req.json()
+
+    // Validate required fields
+    if (!formData.fullName || !formData.email || !formData.message) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { 
+          status: 400,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        }
+      )
+    }
+
+    // Save to Supabase database (optional but recommended)
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { error: dbError } = await supabaseClient
+      .from('contact_submissions')
+      .insert([
+        {
+          full_name: formData.fullName,
+          email: formData.email,
+          organization: formData.organization,
+          phone_number: formData.phoneNumber,
+          message: formData.message,
+          submitted_at: new Date().toISOString()
+        }
+      ])
+
+    if (dbError) {
+      console.error('Database error:', dbError)
+      // Continue even if DB insert fails - still send email
+    }
+
+    // Send email using Resend
+    const emailRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${RESEND_API_KEY}`
+      },
+      body: JSON.stringify({
+        from: 'Ayulex Contact Form <onboarding@resend.dev>', // Change this after domain verification
+        to: ['amanrajce@gmail.com'],  // Using verified email for testing
+        subject: `New Contact Form Submission from ${formData.fullName}`,
+        html: `
+          <h2>New Contact Form Submission</h2>
+          <p><strong>Name:</strong> ${formData.fullName}</p>
+          <p><strong>Email:</strong> ${formData.email}</p>
+          ${formData.organization ? `<p><strong>Organization:</strong> ${formData.organization}</p>` : ''}
+          ${formData.phoneNumber ? `<p><strong>Phone:</strong> ${formData.phoneNumber}</p>` : ''}
+          <p><strong>Message:</strong></p>
+          <p>${formData.message.replace(/\n/g, '<br>')}</p>
+          <hr>
+          <p><small>Submitted at: ${new Date().toLocaleString()}</small></p>
+        `
+      })
+    })
+
+    if (!emailRes.ok) {
+      const errorData = await emailRes.text()
+      console.error('Resend API error:', errorData)
+      throw new Error('Failed to send email')
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: 'Form submitted successfully!' 
+      }),
+      { 
+        status: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      }
+    )
+
+  } catch (error) {
+    console.error('Error:', error)
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to process form submission',
+        details: error.message 
+      }),
+      { 
+        status: 500,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      }
+    )
+  }
+})
