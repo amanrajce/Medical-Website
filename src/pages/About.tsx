@@ -1,9 +1,9 @@
-import { Users, Award, Shield, Heart, Zap, Target, Brain, Activity, Globe } from 'lucide-react';
+import { Users, Award, Shield, Heart, Zap, Target, Brain, Activity, Globe, Lightbulb, Trophy, Rocket, TrendingUp } from 'lucide-react';
 // Import your team photos
 import member1Photo from '../assets/team/member1.jpeg';
 import member2Photo from '../assets/team/member2.png';
-import member3Photo from '../assets/team/member3.jpeg';
-import member4Photo from '../assets/team/member4.jpg';
+import member3Photo from '../assets/team/member3.png';
+import member4Photo from '../assets/team/member4.jpeg';
 
 const About = () => {
   const team = [
@@ -20,7 +20,7 @@ const About = () => {
       image: member2Photo
     },
     {
-      name: 'Josephine',
+      name: 'Josephine Lalrinmawii',
       role: 'Co-Founder & COO',
       background: 'Manages team operations and cross-functional coordination. Handles day-to-day execution, workflow optimization, and operational excellence.',
       image: member3Photo
@@ -86,25 +86,29 @@ const About = () => {
       year: 'Nov 2024', 
       title: 'The Beginning',
       event: 'Ayulex concept developed and presented at Innovia 24, securing 3rd Place at Mizoram University Innovation Challenge',
-      icon: '🌱'
+      icon: Lightbulb,
+      color: 'from-green-500 to-emerald-600'
     },
     { 
       year: 'Apr 2025', 
       title: 'National Recognition',
       event: 'Won 1st Place at Yuvamantha Hackathon 2025, organized by Ministry of Education with our online healthcare assistance model prototype',
-      icon: '🏆'
+      icon: Trophy,
+      color: 'from-yellow-500 to-amber-600'
     },
     { 
       year: 'Oct 2025', 
       title: 'SIH Grand Finale',
       event: 'Selected for Smart India Hackathon 2025 Grand Finale under AICTE Healthcare Innovation Challenge - Team Ayulex (ID: 70361)',
-      icon: '🚀'
+      icon: Rocket,
+      color: 'from-blue-500 to-indigo-600'
     },
     { 
       year: 'Beyond', 
       title: 'Our Vision',
       event: 'Bridge the healthcare divide across rural and urban India through AI-powered diagnostic support and intelligent hospital management',
-      icon: '🎯'
+      icon: TrendingUp,
+      color: 'from-purple-500 to-violet-600'
     }
   ];
 
@@ -231,25 +235,28 @@ const About = () => {
             <div className="absolute left-8 md:left-16 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500/60 via-blue-600 to-blue-600/80"></div>
             
             <div className="space-y-12">
-              {milestones.map((milestone, index) => (
-                <div key={index} className="relative flex items-start">
-                  <div className="absolute left-5 md:left-13 w-8 h-8 bg-white rounded-full border-4 border-blue-600 z-10 flex items-center justify-center text-lg">
-                    {milestone.icon}
-                  </div>
-                  
-                  <div className="ml-20 md:ml-32 flex-1">
-                    <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border-l-4 border-blue-600 hover:shadow-xl transition-all hover:translate-x-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
-                          {milestone.year}
-                        </span>
-                        <h4 className="text-xl font-bold text-gray-900">{milestone.title}</h4>
+              {milestones.map((milestone, index) => {
+                const Icon = milestone.icon;
+                return (
+                  <div key={index} className="relative flex items-start">
+                    <div className={`absolute left-5 md:left-13 w-12 h-12 bg-gradient-to-br ${milestone.color} rounded-full z-10 flex items-center justify-center shadow-lg`}>
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
+                    
+                    <div className="ml-20 md:ml-32 flex-1">
+                      <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border-l-4 border-blue-600 hover:shadow-xl transition-all hover:translate-x-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
+                            {milestone.year}
+                          </span>
+                          <h4 className="text-xl font-bold text-gray-900">{milestone.title}</h4>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed">{milestone.event}</p>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{milestone.event}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
