@@ -232,26 +232,31 @@ const About = () => {
           </div>
 
           <div className="relative">
-            <div className="absolute left-8 md:left-16 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500/60 via-blue-600 to-blue-600/80"></div>
+            {/* Vertical timeline line */}
+            <div className="absolute left-6 md:left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500/40 via-blue-600/60 to-blue-600/40"></div>
             
-            <div className="space-y-12">
+            <div className="space-y-16">
               {milestones.map((milestone, index) => {
                 const Icon = milestone.icon;
                 return (
-                  <div key={index} className="relative flex items-start">
-                    <div className={`absolute left-5 md:left-13 w-12 h-12 bg-gradient-to-br ${milestone.color} rounded-full z-10 flex items-center justify-center shadow-lg`}>
-                      <Icon className="h-6 w-6 text-white" />
+                  <div key={index} className="relative flex items-start group">
+                    {/* Icon circle - perfectly centered on the line */}
+                    <div className="absolute left-0 top-0 z-10">
+                      <div className={`w-14 h-14 bg-gradient-to-br ${milestone.color} rounded-full flex items-center justify-center shadow-xl border-4 border-white group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className="h-7 w-7 text-white" strokeWidth={2.5} />
+                      </div>
                     </div>
                     
-                    <div className="ml-20 md:ml-32 flex-1">
-                      <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border-l-4 border-blue-600 hover:shadow-xl transition-all hover:translate-x-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
+                    {/* Content card */}
+                    <div className="ml-24 flex-1">
+                      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group-hover:-translate-y-1">
+                        <div className="flex flex-wrap items-center gap-3 mb-4">
+                          <span className={`inline-block px-4 py-1.5 bg-gradient-to-r ${milestone.color} text-white text-sm font-bold rounded-full shadow-md`}>
                             {milestone.year}
                           </span>
-                          <h4 className="text-xl font-bold text-gray-900">{milestone.title}</h4>
+                          <h4 className="text-xl md:text-2xl font-bold text-gray-900">{milestone.title}</h4>
                         </div>
-                        <p className="text-gray-700 leading-relaxed">{milestone.event}</p>
+                        <p className="text-gray-700 leading-relaxed text-base">{milestone.event}</p>
                       </div>
                     </div>
                   </div>
